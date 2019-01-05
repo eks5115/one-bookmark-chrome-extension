@@ -1,0 +1,9 @@
+{
+  "name": "one_bookmark",
+  "description": "One Bookmark for Chrome Extension",
+  "path": "./src/host/host.json",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://fkcbodphbkhaphlefpfmiapcapbjkcfg/"
+  ]
+}
