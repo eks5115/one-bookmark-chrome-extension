@@ -16,9 +16,9 @@ register() {
   sed -i '' "/path/{s/.*/  \"path\":\"${ESCAPED_HOST_CHROME_PATH}\",/;}" ${HOST_MANIFEST_PATH}
   sed -i '' "/chrome-extension/{s/.*/    \"chrome-extension:\/\/${extensionID}\/\"/;}" ${HOST_MANIFEST_PATH}
 
+  chmod +x "${HOST_PATH}"
   cp ${HOST_PATH} "${CHROME_NATIVE_MESSAGE_PATH}"
   cp ${HOST_MANIFEST_PATH} "${CHROME_NATIVE_MESSAGE_PATH}"
-  chmod +x "${HOST_CHROME_PATH}"
 }
 
 while getopts n:i: opt;

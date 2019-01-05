@@ -49,17 +49,17 @@ function receive() {
 
 /**
  *
- * @param {ResponseMessage} message
+ * @param {ResponseMessage} responseMessage
  */
-function send(message) {
-  let messageString = JSON.stringify(message);
+function send(responseMessage) {
+  let message = JSON.stringify(responseMessage);
   let buffer = Buffer.alloc(4);
-  buffer.writeInt32LE(messageString.length, 0);
-  process.stdout.write(buffer.toString());
+  let messageBuf = Buffer.from(message);
 
-  buffer = Buffer.alloc(messageString.length);
-  buffer.write(messageString);
-  process.stdout.write(buffer.toString());
+  buffer.writeInt32LE(messageBuf.length, 0);
+
+  process.stdout.write(buffer);
+  process.stdout.write(messageBuf);
 }
 
 function exec(command) {

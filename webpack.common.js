@@ -9,6 +9,9 @@ module.exports = {
     background: './src/background.js',
     popup: './src/popup.js'
   },
+  node: {
+    fs: 'empty'
+  },
   module: {
     rules: [
       {
