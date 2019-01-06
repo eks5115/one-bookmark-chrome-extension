@@ -1,6 +1,4 @@
 
 require('babel-register')({
-  presets: [ 'env' ]
+  presets: [ 'env', 'stage-0' ]
 });
-
-let Bookmark = require('../src/js/Bookmark').default;

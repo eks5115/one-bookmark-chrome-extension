@@ -1,8 +1,7 @@
 
-let sPlist = require('simple-plist');
+const plist = require('simple-plist');
 const uuid = require("uuid/v4");
-
-const SAFARI_LIST_FILE = '~/Library/Safari/Bookmarks.plist';
+const userHome = require('user-home');
 
 let WebBookmarkType = {
   LIST: "WebBookmarkTypeList",
@@ -12,6 +11,10 @@ let WebBookmarkType = {
 
 class Bookmark {
 
+  static SAFARI_PLIST_FILE = `${userHome}/Library/Safari/Bookmarks.plist`;
+  static CHROME_TO_SAFARI = 'chrome_to_safari';
+  static SAFARI_TO_CHROME = 'safari_to_chrome';
+
   constructor() {
     this.uuid = uuid;
   }
@@ -20,30 +23,40 @@ class Bookmark {
    *
    * @param {string} safariBookmarks
    */
-  loadFromSafari(safariBookmarks) {
+  loadFromSafari(safariBookmarks=undefined) {
 
     this.safariRawBookmarks = [];
     if (typeof safariBookmarks === "string") {
-      this.safariRawBookmarks.push(sPlist.parse(safariBookmarks));
+      this.safariRawBookmarks.push(plist.parse(safariBookmarks));
     } else if (typeof safariBookmarks === "object") {
       this.safariRawBookmarks.push(safariBookmarks);
-    } else if (safariBookmarks === null) {
-      this.safariRawBookmarks.push(sPlist.readFileSync(SAFARI_LIST_FILE));
+    } else if (safariBookmarks === undefined) {
+      this.safariRawBookmarks.push(plist.readFileSync(Bookmark.SAFARI_PLIST_FILE));
     }
 
     this.safariBookmarks = this._fromSafariRe(this.safariRawBookmarks);
   }
 
-  loadFromChrome(chromeBookmarks) {
-    if (chromeBookmarks === undefined) {
-      chrome.bookmarks.getTree(function(bookmarkArray){
-        this.chromeRowBookmarks = bookmarkArray
-      })
-    } else {
-      this.chromeRowBookmarks = chromeBookmarks
+  /**
+   *
+   * @param {function} callback
+   * @param {object} chromeBookmarks
+   */
+  loadFromChrome(callback, chromeBookmarks=undefined) {
+    let that = this;
+    if (typeof chromeBookmarks === 'string') {
+      this.chromeRowBookmarks = JSON.parse(chromeBookmarks);
+      this.chromeBookmarks = this._fromChromeRe(this.chromeRowBookmarks);
+    } else if (typeof chromeBookmarks === 'object') {
+      this.chromeRowBookmarks = chromeBookmarks;
+      this.chromeBookmarks = this._fromChromeRe(this.chromeRowBookmarks);
+    } else if (chromeBookmarks === undefined) {
+      chrome.bookmarks.getTree((results)=>{
+        this.chromeRowBookmarks = results;
+        this.chromeBookmarks = this._fromChromeRe(this.chromeRowBookmarks);
+        callback(that);
+      });
     }
-
-    this.chromeBookmarks = this._fromChromeRe(this.chromeRowBookmarks);
   }
 
   chromeToSafari() {
@@ -55,7 +68,19 @@ class Bookmark {
     safariNewBookmarks.Sync = root.Sync;
     safariNewBookmarks.WebBookmarkFileVersion = root.WebBookmarkFileVersion;
 
-    sPlist.writeFileSync(SAFARI_LIST_FILE, safariNewBookmarks);
+    plist.writeFileSync(Bookmark.SAFARI_PLIST_FILE, safariNewBookmarks);
+  }
+
+  getSafariBookmark() {
+    let safariNewBookmarks = this._toSafariRe(this.chromeBookmarks);
+
+    safariNewBookmarks = safariNewBookmarks[0].Children[0];
+    let root = this.safariRawBookmarks[0];
+    safariNewBookmarks.Title = root.Title;
+    safariNewBookmarks.Sync = root.Sync;
+    safariNewBookmarks.WebBookmarkFileVersion = root.WebBookmarkFileVersion;
+
+    return safariNewBookmarks;
   }
 
   /**
@@ -156,4 +181,4 @@ class Bookmark {
   }
 }
 
-export default Bookmark;
+module.exports = Bookmark;

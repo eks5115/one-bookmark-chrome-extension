@@ -1,49 +1,59 @@
 
 const child_process = require('child_process');
-
-process.stdin.on('readable', function() {
-  try {
-    let message = receive();
-    if (message !== null) {
-      exec(message);
-    }
-  } catch (e) {
-    console.error(e);
-  }
-});
+const plist = require('simple-plist');
+const Bookmark = require('../js/Bookmark');
+const MessageType = require('../js/MessageType');
+const log = require('../js/log');
 
 process.stdin.on('data', function(chunks) {
+  try {
+    receiveStream(chunks, (buf) => {
+      exec(JSON.parse(buf.toString()));
+    })
+  } catch (e) {
+     log.error(e);
+  }
 });
 
 process.stdin.on('end',function(){
+  log.debug('end');
 });
 
 process.stdin.on('error', function(error){
+  log.debug('error');
 });
 
-
-function receive() {
-  let lengthBuffer = process.stdin.read(4);
-
-  if (lengthBuffer == null) {
-    return null
+let begin = false;
+let buffer = Buffer.from([]);
+let total = 0;
+let length = 0;
+function receiveStream(chunks, callback) {
+  if (!begin) {
+    buffer = Buffer.from([]);
+    total = chunks.readInt32LE(0);
+    buffer = Buffer.concat([buffer, chunks.slice(4, chunks.length)]);
+    length = chunks.length - 4;
+    if (total > length) {
+      begin = true;
+    } else {
+      callback(buffer);
+    }
+    return ;
   }
-  let length = lengthBuffer.readInt32LE(0);
 
-  let commandBuffer = process.stdin.read(length);
-  if (commandBuffer == null) {
-    return null;
+  buffer = Buffer.concat([buffer, chunks]);
+  length += chunks.length;
+  if (length === total) {
+    begin = false;
+    callback(buffer);
   }
-
-  return JSON.parse(commandBuffer.toString());
 }
 
 /**
  * ResponseMessage virtual Type
  * @typedef {Object} ResponseMessage
- * @property {String} stdout
- * @property {String} stderr
- * @property {Number} code
+ * @property {string} type
+ * @property {object|string} payload
  */
 
 /**
@@ -62,16 +72,32 @@ function send(responseMessage) {
 }
 
 function exec(message) {
-  child_process.exec(message.payload, (error, stdout, stderr) => {
-    let code = 0;
-    if (error !== null) {
-      code = error.code
-    }
+  if (message.type === MessageType.COMMAND) {
+    child_process.exec(message.payload, (error, stdout, stderr) => {
+      let code = 0;
+      if (error !== null) {
+        code = error.code
+      }
+      send({
+        type: message.type,
+        payload: {
+          code: code,
+          stdout: stdout,
+          stderr: stderr
+        }
+      });
+    });
+  } else if (message.type === MessageType.WRITE_SAFARI_BOOKMARK_PLIST) {
+    plist.writeFileSync(Bookmark.SAFARI_PLIST_FILE, message.payload);
     send({
       type: message.type,
-      code: code,
-      stdout: stdout,
-      stderr: stderr
+      payload: ""
+    })
+  } else if (message.type === MessageType.READ_SAFARI_BOOKMARK_PLIST) {
+    let bookmarks = plist.readFileSync(Bookmark.SAFARI_PLIST_FILE);
+    send({
+      type: message.type,
+      payload: bookmarks
     });
-  });
+  }
 }

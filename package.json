@@ -20,6 +20,7 @@
   "dependencies": {
     "log4js": "^3.0.6",
     "simple-plist": "^1.0.0",
+    "user-home": "^2.0.0",
     "uuid": "^3.3.2"
   },
   "devDependencies": {

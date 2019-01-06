@@ -1,22 +1,12 @@
 
-let commandElement = document.getElementById('command');
-let commitElement = document.getElementById('commit');
+const MessageType = require('./js/MessageType');
 
-commitElement.onclick = function() {
+let chrome2Safari = document.getElementById('chrome2Safari');
 
-  if (commandElement.value !== '') {
-    chrome.runtime.sendMessage({
-      type: 'command',
-      payload: commandElement.value
-    }, function(response){
-      console.debug(response)
-    });
-  }
-};
-
-commandElement.onkeydown = (event) => {
-  if (event.code === 'Enter' && !commandElement.value.endsWith('\\')) {
-    event.preventDefault();
-    commitElement.dispatchEvent(new MouseEvent('click'));
-  }
+chrome2Safari.onclick = ()=>{
+  chrome.runtime.sendMessage({
+    type: MessageType.REQUEST_CHROME2SAFARI
+  }, function(response){
+    console.debug(response);
+  });
 };
