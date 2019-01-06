@@ -1,4 +1,4 @@
-{
+let manifest = {
   "name": "one-bookmark-chrome-extension",
   "description" : "One Bookmark for Chrome extension",
   "version": "0.0.1",
@@ -9,10 +9,13 @@
   "manifest_version": 2,
   "background": {
     "scripts": ["./background.js"],
-    "persistent": false
+    "persistent": true
   },
   "permissions": [
-    "nativeMessaging"
+    "nativeMessaging",
+    "bookmarks"
   ],
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
-}
+};
+
+module.exports = manifest;

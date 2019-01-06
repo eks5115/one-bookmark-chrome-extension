@@ -8,6 +8,6 @@ const ChromeExtensionReloader  = require('webpack-chrome-extension-reloader');
       contentBase: './dist'
     },
     plugins: [
-      new ChromeExtensionReloader(),
+      // new ChromeExtensionReloader(),
     ]
 });

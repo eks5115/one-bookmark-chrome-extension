@@ -7,6 +7,8 @@ BASE_PATH=$(cd `dirname $0`; pwd)
 register() {
   CHROME_NATIVE_MESSAGE_PATH="$HOME/Library/Application Support/Google/Chrome/NativeMessagingHosts"
 
+  awk -v hostPath=${BASE_PATH}/${hostName}.js '{if (NR==1 && $0 != "#!/usr/local/bin/node") print "#!/usr/local/bin/node">hostPath; print $0>>hostPath;}' ${BASE_PATH}/host.js
+
   HOST_PATH=${BASE_PATH}/${hostName}.js
   HOST_MANIFEST_PATH=${BASE_PATH}/${hostName}.json
 

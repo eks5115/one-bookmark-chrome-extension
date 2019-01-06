@@ -1,4 +1,3 @@
-#!/usr/local/bin/node
 
 const child_process = require('child_process');
 
@@ -6,7 +5,7 @@ process.stdin.on('readable', function() {
   try {
     let message = receive();
     if (message !== null) {
-      exec(message.command);
+      exec(message);
     }
   } catch (e) {
     console.error(e);
@@ -62,13 +61,14 @@ function send(responseMessage) {
   process.stdout.write(messageBuf);
 }
 
-function exec(command) {
-  child_process.exec(command, (error, stdout, stderr) => {
+function exec(message) {
+  child_process.exec(message.payload, (error, stdout, stderr) => {
     let code = 0;
     if (error !== null) {
       code = error.code
     }
     send({
+      type: message.type,
       code: code,
       stdout: stdout,
       stderr: stderr

@@ -1,18 +1,16 @@
 
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ManifestPlugin = require('webpack-manifest-plugin');
 
-const manifest = require('./src/manifest');
+const hostManifest = require('./src/host.manifest');
 
 module.exports = {
+  mode: 'development',
+  devtool: 'inline-source-map',
   entry: {
-    index: './src/index.js',
-    background: './src/background.js',
-    popup: './src/popup.js',
+    host: `./src/host/host.js`
   },
-  node: {
-    fs: 'empty',
-  },
+  target: "node",
   module: {
     rules: [
       {
@@ -37,17 +35,16 @@ module.exports = {
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      filename: 'popup.html',
-      template: './src/popup.html',
-      chunks: [
-        'popup'
-      ]
-    }),
     new ManifestPlugin({
+      fileName: `${hostManifest.name}.json`,
       serialize: () => {
-        return JSON.stringify(manifest, null, 2)
+        return JSON.stringify(hostManifest, null, 2)
       }
-    })
+    }),
+    new CopyWebpackPlugin([
+      {
+        from: './src/host/register.sh',
+      }
+    ])
   ]
 };
